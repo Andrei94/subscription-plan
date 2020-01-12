@@ -1,0 +1,5 @@
+profile: service
+defaultPackage: subscription.plan
+---
+testFramework: junit
+sourceLanguage: java
