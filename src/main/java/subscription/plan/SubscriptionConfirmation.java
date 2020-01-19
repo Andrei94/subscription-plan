@@ -1,5 +1,8 @@
 package subscription.plan;
 
+import io.micronaut.core.annotation.Introspected;
+
+@Introspected
 public class SubscriptionConfirmation {
 	private long freeSize;
 	private String bucketName;

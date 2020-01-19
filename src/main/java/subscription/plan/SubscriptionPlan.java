@@ -1,5 +1,8 @@
 package subscription.plan;
 
+import io.micronaut.core.annotation.Introspected;
+
+@Introspected
 public class SubscriptionPlan {
 	private long usedSize;
 	private String user;
