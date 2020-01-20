@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @MicronautTest
 public class HomeControllerTest {
@@ -21,13 +22,44 @@ public class HomeControllerTest {
 
 	@Test
 	void checkStorage() {
-		HttpRequest<SubscriptionPlan> put = HttpRequest.PUT("/checkStorage", new SubscriptionPlan(1, "username"));
-		HttpResponse<SubscriptionConfirmation> exchange = client.toBlocking().exchange(put, SubscriptionConfirmation.class);
-		assertEquals(200, exchange.getStatus().getCode());
-		SubscriptionConfirmation subscriptionConfirmation = Objects.requireNonNull(exchange.body());
+		SubscriptionConfirmation subscriptionConfirmation = getSubscriptionConfirmation(new SubscriptionPlan(1, "username"));
 		assertEquals(1024L * 1024L * 1024L * 1024L - 1, subscriptionConfirmation.getFreeSize());
 		assertEquals("backedup-storage-2", subscriptionConfirmation.getBucketName());
 		assertEquals("INTELLIGENT_TIERING", subscriptionConfirmation.getStorageClass());
 		assertEquals("username/", subscriptionConfirmation.getUserPath());
+	}
+
+	@Test
+	void checkStorageForUserUsername2() {
+		SubscriptionConfirmation subscriptionConfirmation = getSubscriptionConfirmation(new SubscriptionPlan(1, "username2"));
+		assertEquals(512L * 1024L * 1024L * 1024L - 1, subscriptionConfirmation.getFreeSize());
+		assertEquals("backedup-storage-2", subscriptionConfirmation.getBucketName());
+		assertEquals("INTELLIGENT_TIERING", subscriptionConfirmation.getStorageClass());
+		assertEquals("username2/", subscriptionConfirmation.getUserPath());
+	}
+
+	@Test
+	void checkStorageForUserUsername3() {
+		SubscriptionConfirmation subscriptionConfirmation = getSubscriptionConfirmation(new SubscriptionPlan(1, "username3"));
+		assertEquals(256L * 1024L * 1024L * 1024L - 1, subscriptionConfirmation.getFreeSize());
+		assertEquals("backedup-storage-2", subscriptionConfirmation.getBucketName());
+		assertEquals("INTELLIGENT_TIERING", subscriptionConfirmation.getStorageClass());
+		assertEquals("username3/", subscriptionConfirmation.getUserPath());
+	}
+
+	@Test
+	void checkStorageForUnknownUser() {
+		SubscriptionConfirmation subscriptionConfirmation = getSubscriptionConfirmation(new SubscriptionPlan(1, "user"));
+		assertEquals(0, subscriptionConfirmation.getFreeSize());
+		assertNull(subscriptionConfirmation.getBucketName());
+		assertNull(subscriptionConfirmation.getStorageClass());
+		assertNull(subscriptionConfirmation.getUserPath());
+	}
+
+	private SubscriptionConfirmation getSubscriptionConfirmation(SubscriptionPlan user) {
+		HttpRequest<SubscriptionPlan> put = HttpRequest.PUT("/checkStorage", user);
+		HttpResponse<SubscriptionConfirmation> exchange = client.toBlocking().exchange(put, SubscriptionConfirmation.class);
+		assertEquals(200, exchange.getStatus().getCode());
+		return Objects.requireNonNull(exchange.body());
 	}
 }
