@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FileUserSpaceTest {
 	@Test
-	void getTotalSpaceOfC() {
+	void getTotalSpaceOfCDrive() {
 		assertEquals(137458384896L, new FileUserSpace() {
 			@Override
 			String getPathname(String username) {
@@ -17,6 +17,6 @@ public class FileUserSpaceTest {
 
 	@Test
 	void getPathnameOfUserUsername1() {
-		assertEquals("/data/username1/", new FileUserSpace().getPathname("username1"));
+		assertEquals("/data/username1/data", new FileUserSpace().getPathname("username1"));
 	}
 }

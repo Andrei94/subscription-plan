@@ -7,8 +7,7 @@ import javax.inject.Inject;
 
 @Controller
 public class HomeController {
-	@Inject
-	private UserSpace spaceForUser;
+	private UserSpace spaceForUser = new FileUserSpace();
 
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {
@@ -27,9 +26,11 @@ public class HomeController {
 	}
 
 	long getUserPlanSize(String user) {
-		if("username".equals(user)) {
-			return spaceForUser.getTotalSpace("username");
-		}
 		return spaceForUser.getTotalSpace(user);
+	}
+
+	@Inject
+	public void setSpaceForUser(UserSpace spaceForUser) {
+		this.spaceForUser = spaceForUser;
 	}
 }

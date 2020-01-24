@@ -66,7 +66,7 @@ public class HomeControllerTest {
 	}
 
 	@Primary
-	@MockBean
+	@MockBean(UserSpace.class)
 	UserSpace userSpace() {
 		return username -> {
 			final long quarterTB = 256L * 1024L * 1024L * 1024L;
