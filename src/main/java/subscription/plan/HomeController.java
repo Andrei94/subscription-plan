@@ -3,8 +3,13 @@ package subscription.plan;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
 
+import javax.inject.Inject;
+
 @Controller
 public class HomeController {
+	@Inject
+	private UserSpace spaceForUser;
+
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {
 		long userPlanSize = getUserPlanSize(plan.getUser());
@@ -22,18 +27,9 @@ public class HomeController {
 	}
 
 	long getUserPlanSize(String user) {
-		final long quarterTB = 256L * 1024L * 1024L * 1024L;
-		final long halfTB = 512L * 1024L * 1024L * 1024L;
-		final long oneTB = 1024L * 1024L * 1024L * 1024L;
-
-		switch(user) {
-			case "username":
-				return oneTB;
-			case "username2":
-				return halfTB;
-			case "username3":
-				return quarterTB;
+		if("username".equals(user)) {
+			return spaceForUser.getTotalSpace("username");
 		}
-		return 0;
+		return spaceForUser.getTotalSpace(user);
 	}
 }

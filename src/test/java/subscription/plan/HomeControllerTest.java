@@ -1,10 +1,12 @@
 package subscription.plan;
 
+import io.micronaut.context.annotation.Primary;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.test.annotation.MicronautTest;
+import io.micronaut.test.annotation.MockBean;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
@@ -61,5 +63,25 @@ public class HomeControllerTest {
 		HttpResponse<SubscriptionConfirmation> exchange = client.toBlocking().exchange(put, SubscriptionConfirmation.class);
 		assertEquals(200, exchange.getStatus().getCode());
 		return Objects.requireNonNull(exchange.body());
+	}
+
+	@Primary
+	@MockBean
+	UserSpace userSpace() {
+		return username -> {
+			final long quarterTB = 256L * 1024L * 1024L * 1024L;
+			final long halfTB = 512L * 1024L * 1024L * 1024L;
+			final long oneTB = 1024L * 1024L * 1024L * 1024L;
+
+			switch(username) {
+				case "username":
+					return oneTB;
+				case "username2":
+					return halfTB;
+				case "username3":
+					return quarterTB;
+			}
+			return 0;
+		};
 	}
 }
