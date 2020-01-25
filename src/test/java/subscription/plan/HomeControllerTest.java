@@ -68,20 +68,40 @@ public class HomeControllerTest {
 	@Primary
 	@MockBean(UserSpace.class)
 	UserSpace userSpace() {
-		return username -> {
-			final long quarterTB = 256L * 1024L * 1024L * 1024L;
-			final long halfTB = 512L * 1024L * 1024L * 1024L;
-			final long oneTB = 1024L * 1024L * 1024L * 1024L;
+		return new FileUserSpace() {
+			@Override
+			public long getTotalSpace(String username) {
+				final long quarterTB = 256L * 1024L * 1024L * 1024L;
+				final long halfTB = 512L * 1024L * 1024L * 1024L;
+				final long oneTB = 1024L * 1024L * 1024L * 1024L;
 
-			switch(username) {
-				case "username":
-					return oneTB;
-				case "username2":
-					return halfTB;
-				case "username3":
-					return quarterTB;
+				switch(username) {
+					case "username":
+						return oneTB;
+					case "username2":
+						return halfTB;
+					case "username3":
+						return quarterTB;
+				}
+				return 0;
 			}
-			return 0;
+
+			@Override
+			public long getUsableSpace(String username) {
+				final long quarterTB = 256L * 1024L * 1024L * 1024L;
+				final long halfTB = 512L * 1024L * 1024L * 1024L;
+				final long oneTB = 1024L * 1024L * 1024L * 1024L;
+
+				switch(username) {
+					case "username":
+						return oneTB;
+					case "username2":
+						return halfTB;
+					case "username3":
+						return quarterTB;
+				}
+				return 0;
+			}
 		};
 	}
 }

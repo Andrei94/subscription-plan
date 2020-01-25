@@ -11,7 +11,7 @@ public class HomeController {
 
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {
-		long userPlanSize = getUserPlanSize(plan.getUser());
+		long userPlanSize = spaceForUser.getUsableSpace(plan.getUser());
 		if(assertPlanSize(userPlanSize, plan.getUsedSize()))
 			return new SubscriptionConfirmation()
 					.withBucketName("backedup-storage-2")
@@ -23,10 +23,6 @@ public class HomeController {
 
 	boolean assertPlanSize(long maxSize, long usedSize) {
 		return usedSize <= maxSize;
-	}
-
-	long getUserPlanSize(String user) {
-		return spaceForUser.getTotalSpace(user);
 	}
 
 	@Inject
