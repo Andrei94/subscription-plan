@@ -29,4 +29,10 @@ public class HomeController {
 	public void setSpaceForUser(UserSpace spaceForUser) {
 		this.spaceForUser = spaceForUser;
 	}
+
+	@Get(value = "/showSubscriptionSpace/{username}")
+	StorageSubscription showSubscriptionSpace(@PathVariable("username") String user) {
+		long totalSpace = spaceForUser.getTotalSpace(user);
+		return new StorageSubscription(totalSpace - spaceForUser.getUsableSpace(user), totalSpace);
+	}
 }
