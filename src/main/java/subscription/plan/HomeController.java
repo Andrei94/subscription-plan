@@ -8,6 +8,8 @@ import javax.inject.Inject;
 @Controller
 public class HomeController {
 	private UserSpace spaceForUser = new FileUserSpace();
+	private final UserService userService = new UserService();
+	private VolumeService volumeService = new VolumeService(userService, new DeviceList());
 
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {
@@ -34,5 +36,15 @@ public class HomeController {
 	StorageSubscription showSubscriptionSpace(@PathVariable("username") String user) {
 		long totalSpace = spaceForUser.getTotalSpace(user);
 		return new StorageSubscription(totalSpace - spaceForUser.getUsableSpace(user), totalSpace);
+	}
+
+	@Put(value = "/volume/{username}")
+	String createVolume(@PathVariable("username") String user) {
+		if(userService.userExists(user)) {
+			return userService.getVolumeId(user);
+		}
+		String volumeId = volumeService.createVolume();
+		volumeService.attachVolume(user, volumeId);
+		return volumeId;
 	}
 }
