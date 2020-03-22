@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FileUserSpaceTest {
+class FileUserSpaceTest {
 	private final FileUserSpace fileUserSpace = new FileUserSpace() {
 		@Override
 		String getUserPathname(String username) {
@@ -25,6 +25,6 @@ public class FileUserSpaceTest {
 
 	@Test
 	void getPathnameOfUserUsername1() {
-		assertEquals("/data/username1/data", new FileUserSpace().getUserPathname("username1"));
+		assertEquals("/mnt/username1", new FileUserSpace().getUserPathname("username1"));
 	}
 }
