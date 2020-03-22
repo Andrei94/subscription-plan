@@ -1,6 +1,6 @@
 package subscription.plan;
 
-import io.micronaut.context.annotation.Primary;
+import io.micronaut.context.annotation.Replaces;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.HttpClient;
@@ -55,8 +55,8 @@ public class StorageSubscriptionTest {
 		return Objects.requireNonNull(exchange.body());
 	}
 
-	@Primary
 	@MockBean(UserSpace.class)
+	@Replaces(FileUserSpace.class)
 	UserSpace userSpace() {
 		return new FileUserSpace() {
 			@Override

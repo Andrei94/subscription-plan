@@ -1,9 +1,11 @@
 package subscription.plan;
 
+import javax.inject.Singleton;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Singleton
 public class DeviceList {
 	private Map<String, Boolean> instanceDeviceList = new ConcurrentHashMap<String, Boolean>() {{
 		put("/dev/sdb", true);
@@ -35,5 +37,9 @@ public class DeviceList {
 
 	public void markAsUsed(String device) {
 		instanceDeviceList.put(device, false);
+	}
+
+	public boolean getDeviceStatus(String device) {
+		return instanceDeviceList.get(device);
 	}
 }

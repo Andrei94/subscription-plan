@@ -7,9 +7,12 @@ import javax.inject.Inject;
 
 @Controller
 public class HomeController {
-	private UserSpace spaceForUser = new FileUserSpace();
-	private final UserService userService = new UserService();
-	private VolumeService volumeService = new VolumeService(userService, new DeviceList());
+	@Inject
+	private UserSpace spaceForUser;
+	@Inject
+	private UserService userService;
+	@Inject
+	private VolumeService volumeService;
 
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {
@@ -25,11 +28,6 @@ public class HomeController {
 
 	boolean assertPlanSize(long maxSize, long usedSize) {
 		return usedSize <= maxSize;
-	}
-
-	@Inject
-	public void setSpaceForUser(UserSpace spaceForUser) {
-		this.spaceForUser = spaceForUser;
 	}
 
 	@Get(value = "/showSubscriptionSpace/{username}")

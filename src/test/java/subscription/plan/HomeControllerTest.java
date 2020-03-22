@@ -1,6 +1,6 @@
 package subscription.plan;
 
-import io.micronaut.context.annotation.Primary;
+import io.micronaut.context.annotation.Replaces;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.HttpClient;
@@ -10,7 +10,6 @@ import io.micronaut.test.annotation.MockBean;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,8 +64,8 @@ public class HomeControllerTest {
 		return Objects.requireNonNull(exchange.body());
 	}
 
-	@Primary
 	@MockBean(UserSpace.class)
+	@Replaces(FileUserSpace.class)
 	UserSpace userSpace() {
 		return new FileUserSpace() {
 			@Override
