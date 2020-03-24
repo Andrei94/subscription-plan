@@ -2,6 +2,7 @@ package subscription.plan;
 
 import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.simplesystemsmanagement.model.SendCommandRequest;
+import io.micronaut.context.annotation.Value;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -13,7 +14,10 @@ import java.util.List;
 public class UserVolumeMountService implements VolumeService {
 	private final UserService userService;
 	private final DeviceList deviceList;
-	private final String instanceId = "i-0db01ffb96e11c116";
+	@Value("${ec2-instance}")
+	public String ec2InstanceId;
+	@Value("${ec2-region}")
+	public String ec2Region;
 	@Inject
 	private AWSAdapter awsAdapter;
 
@@ -26,7 +30,7 @@ public class UserVolumeMountService implements VolumeService {
 	public String createVolume() {
 		String volumeId = awsAdapter
 				.createVolume(
-						new CreateVolumeRequest(500, "eu-central-1a")
+						new CreateVolumeRequest(500, ec2Region)
 								.withEncrypted(true)
 								.withVolumeType(VolumeType.Sc1))
 				.getVolume().getVolumeId();
@@ -41,7 +45,7 @@ public class UserVolumeMountService implements VolumeService {
 	@Override
 	public void attachVolume(String user, String volumeId) {
 		String device = deviceList.getFreeDevice();
-		AttachVolumeResult attachVolumeResult = awsAdapter.attachVolume(new AttachVolumeRequest(volumeId, instanceId, device));
+		AttachVolumeResult attachVolumeResult = awsAdapter.attachVolume(new AttachVolumeRequest(volumeId, ec2InstanceId, device));
 		MountPoint mp = new MountPoint(attachVolumeResult.getAttachment().getDevice(), attachVolumeResult.getAttachment().getVolumeId());
 		userService.put(user, mp);
 		deviceList.markAsUsed(mp.getDeviceName());
@@ -62,7 +66,7 @@ public class UserVolumeMountService implements VolumeService {
 					put("commands", Collections.singletonList(template.replace("{mountPoint}", mp.getDeviceName()).replace("{username}", user)));
 					put("executionTimeout", Collections.singletonList("40"));
 				}})
-				.withInstanceIds(instanceId));
+				.withInstanceIds(ec2InstanceId));
 	}
 
 	void setAwsAdapter(AWSAdapter awsAdapter) {

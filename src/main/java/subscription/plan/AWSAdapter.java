@@ -11,4 +11,6 @@ public interface AWSAdapter {
 	AttachVolumeResult attachVolume(AttachVolumeRequest req);
 
 	void sendCommand(SendCommandRequest req);
+
+	void deleteEBSVolume(String volumeId);
 }

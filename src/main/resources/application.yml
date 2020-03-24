@@ -10,3 +10,5 @@ micronaut:
             - http://localhost:4200
           allowedMethods:
             - GET
+ec2-instance: i-0c5c4da690015a6e8
+ec2-region: eu-central-1a

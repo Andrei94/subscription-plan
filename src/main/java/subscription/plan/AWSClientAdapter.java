@@ -10,6 +10,7 @@ import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.amazonaws.services.simplesystemsmanagement.model.SendCommandRequest;
 
 import javax.inject.Singleton;
+import java.util.Collections;
 
 @Singleton
 public class AWSClientAdapter implements AWSAdapter {
@@ -34,5 +35,16 @@ public class AWSClientAdapter implements AWSAdapter {
 	@Override
 	public void sendCommand(SendCommandRequest req) {
 		ssm.sendCommand(req);
+	}
+
+	@Override
+	public void deleteEBSVolume(String volumeId) {
+		ec2Client.detachVolume(new DetachVolumeRequest(volumeId));
+		while(true) {
+			Volume volumeStatusItem = ec2Client.describeVolumes(new DescribeVolumesRequest(Collections.singletonList(volumeId))).getVolumes().get(0);
+			if(volumeStatusItem.getState().equals(VolumeState.Available.toString()))
+				break;
+		}
+		ec2Client.deleteVolume(new DeleteVolumeRequest(volumeId));
 	}
 }

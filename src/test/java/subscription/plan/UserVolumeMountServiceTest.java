@@ -6,7 +6,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,6 +29,8 @@ class UserVolumeMountServiceTest {
 
 	@Test
 	void createVolume() {
+		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
+		userVolumeMountService.ec2Region = "eu-central-1a";
 		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
 			@Override
 			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
@@ -49,12 +53,18 @@ class UserVolumeMountServiceTest {
 			public void sendCommand(SendCommandRequest req) {
 				throw new NotImplementedException();
 			}
+
+			@Override
+			public void deleteEBSVolume(String volumeId) {
+				throw new NotImplementedException();
+			}
 		});
 		assertEquals(volumeId, userVolumeMountService.createVolume());
 	}
 
 	@Test
 	void attachVolume() {
+		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
 		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
 			@Override
 			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
@@ -84,7 +94,12 @@ class UserVolumeMountServiceTest {
 				assertEquals("1", req.getDocumentVersion());
 				assertEquals(Collections.singletonList("mkfs -t xfs /dev/sdo && mkdir /mnt/user && mount /dev/sdo /mnt/user"), req.getParameters().get("commands"));
 				assertEquals(Collections.singletonList("40"), req.getParameters().get("executionTimeout"));
-				assertNotNull(req.getInstanceIds());
+				assertEquals(userVolumeMountService.ec2InstanceId, req.getInstanceIds().get(0));
+			}
+
+			@Override
+			public void deleteEBSVolume(String volumeId) {
+				throw new NotImplementedException();
 			}
 		});
 		userVolumeMountService.attachVolume(user, volumeId);
@@ -115,9 +130,23 @@ class UserVolumeMountServiceTest {
 			public void sendCommand(SendCommandRequest req) {
 				throw new NotImplementedException();
 			}
+
+			@Override
+			public void deleteEBSVolume(String volumeId) {
+				throw new NotImplementedException();
+			}
 		});
 		assertThrows(AmazonEC2Exception.class, () -> userVolumeMountService.attachVolume(user, volumeId));
 		assertFalse(userMountsService.userExists(user));
 		assertTrue(deviceList.getDeviceStatus(device));
+	}
+
+	@Test
+	void collectUsers() {
+		List<String> users = new ArrayList<>();
+		userMountsService.put("username1", new MountPoint("/dev/sdo", volumeId));
+		userMountsService.put("username2", new MountPoint("/dev/sdn", "vol-07aa2a8cf7b8b15d9"));
+		userMountsService.forEachUser((user, mountPoint) -> users.add(user));
+		assertEquals(2, users.size());
 	}
 }

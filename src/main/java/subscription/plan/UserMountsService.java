@@ -3,6 +3,7 @@ package subscription.plan;
 import javax.inject.Singleton;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 @Singleton
 public class UserMountsService implements UserService {
@@ -21,5 +22,10 @@ public class UserMountsService implements UserService {
 	@Override
 	public String getVolumeId(String user) {
 		return userMountPoints.get(user).getVolumeId();
+	}
+
+	@Override
+	public void forEachUser(BiConsumer<String, MountPoint> action) {
+		userMountPoints.forEach(action);
 	}
 }
