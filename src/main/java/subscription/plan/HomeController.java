@@ -8,11 +8,11 @@ import javax.inject.Inject;
 @Controller
 public class HomeController {
 	@Inject
-	private UserSpace spaceForUser;
+	public UserSpace spaceForUser;
 	@Inject
-	private UserService userService;
+	public UserService userService;
 	@Inject
-	private VolumeService volumeService;
+	public VolumeService volumeService;
 
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {

@@ -21,9 +21,9 @@ public class Scheduler {
 	private ExecutorService shutdownExecutors = Executors.newFixedThreadPool(10);
 	private DataSyncher syncher = new DataSyncher();
 	@Inject
-	private UserService userService;
+	public UserService userService;
 	@Inject
-	private AWSAdapter awsAdapter;
+	public AWSAdapter awsAdapter;
 	@Value("${ec2-instance}")
 	public String ec2InstanceId;
 
