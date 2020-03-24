@@ -19,7 +19,7 @@ public class UserVolumeMountService implements VolumeService {
 	@Value("${ec2-region}")
 	public String ec2Region;
 	@Inject
-	private AWSAdapter awsAdapter;
+	public AWSAdapter awsAdapter;
 
 	public UserVolumeMountService(UserService userService, DeviceList deviceList) {
 		this.userService = userService;
