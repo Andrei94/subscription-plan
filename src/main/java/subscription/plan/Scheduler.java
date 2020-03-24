@@ -42,17 +42,21 @@ public class Scheduler {
 		syncExecutors.shutdown();
 		userService.forEachUser((user, mp) ->
 				shutdownExecutors.execute(() -> {
-					awsAdapter.sendCommand(new SendCommandRequest()
-							.withDocumentName("AWS-RunShellScript")
-							.withDocumentVersion("1")
-							.withParameters(new HashMap<String, List<String>>() {{
-								put("commands", Collections.singletonList("umount -l " + mp.getDeviceName()));
-								put("executionTimeout", Collections.singletonList("40"));
-							}})
-							.withInstanceIds(ec2InstanceId));
+					awsAdapter.sendCommand(createShellCommandRequest("umount -l " + mp.getDeviceName()));
 					awsAdapter.deleteEBSVolume(userService.getVolumeId(mp.getVolumeId()));
 				}));
 		logger.info("Shutdown finished");
+	}
+
+	private SendCommandRequest createShellCommandRequest(String command) {
+		return new SendCommandRequest()
+				.withDocumentName("AWS-RunShellScript")
+				.withDocumentVersion("1")
+				.withParameters(new HashMap<String, List<String>>() {{
+					put("commands", Collections.singletonList(command));
+					put("executionTimeout", Collections.singletonList("40"));
+				}})
+				.withInstanceIds(ec2InstanceId);
 	}
 
 	// run daily at 04:00

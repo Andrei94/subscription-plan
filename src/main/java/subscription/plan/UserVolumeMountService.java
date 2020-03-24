@@ -58,15 +58,24 @@ public class UserVolumeMountService implements VolumeService {
 	}
 
 	private void makeMountPointAvailableToUser(String user, MountPoint mp) {
-		String template = "mkfs -t xfs {mountPoint} && mkdir /mnt/{username} && mount {mountPoint} /mnt/{username}";
-		awsAdapter.sendCommand(new SendCommandRequest()
+		awsAdapter.sendCommand(
+				createShellCommandRequest(
+						"mkfs -t xfs {mountPoint} && mkdir /mnt/{username} && mount {mountPoint} /mnt/{username}"
+								.replace("{mountPoint}", mp.getDeviceName())
+								.replace("{username}", user)
+				)
+		);
+	}
+
+	private SendCommandRequest createShellCommandRequest(String command) {
+		return new SendCommandRequest()
 				.withDocumentName("AWS-RunShellScript")
 				.withDocumentVersion("1")
 				.withParameters(new HashMap<String, List<String>>() {{
-					put("commands", Collections.singletonList(template.replace("{mountPoint}", mp.getDeviceName()).replace("{username}", user)));
+					put("commands", Collections.singletonList(command));
 					put("executionTimeout", Collections.singletonList("40"));
 				}})
-				.withInstanceIds(ec2InstanceId));
+				.withInstanceIds(ec2InstanceId);
 	}
 
 	void setAwsAdapter(AWSAdapter awsAdapter) {
