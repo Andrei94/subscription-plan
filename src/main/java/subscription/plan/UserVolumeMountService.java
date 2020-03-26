@@ -49,22 +49,24 @@ public class UserVolumeMountService implements VolumeService {
 		MountPoint mp = new MountPoint(attachVolumeResult.getAttachment().getDevice(), attachVolumeResult.getAttachment().getVolumeId());
 		userService.put(user, mp);
 		deviceList.markAsUsed(mp.getDeviceName());
-		while(true) {
-			Volume volumeStatusItem = awsAdapter.describeVolumes(new DescribeVolumesRequest(Collections.singletonList(volumeId))).getVolumes().get(0);
-			if(volumeStatusItem.getAttachments().get(0).getState().equals(VolumeAttachmentState.Attached.toString()))
-				break;
-		}
 		makeMountPointAvailableToUser(user, mp);
 	}
 
 	private void makeMountPointAvailableToUser(String user, MountPoint mp) {
 		awsAdapter.sendCommand(
 				createShellCommandRequest(
-						"mkfs -t xfs {mountPoint} && mkdir /mnt/{username} && mount {mountPoint} /mnt/{username}"
+						"mkfs -t xfs {mountPoint} && mkdir -p /mnt/{username} && mount {mountPoint} /mnt/{username}"
 								.replace("{mountPoint}", mp.getDeviceName())
 								.replace("{username}", user)
 				)
 		);
+	}
+
+	@Override
+	public void deleteVolume(String user, MountPoint mountPoint) {
+		awsAdapter.sendCommand(createShellCommandRequest("umount -l " + mountPoint.getDeviceName() + " && rm -rf /mnt/" + user));
+		deviceList.markAsFree(mountPoint.getDeviceName());
+		awsAdapter.deleteEBSVolume(mountPoint.getVolumeId());
 	}
 
 	private SendCommandRequest createShellCommandRequest(String command) {

@@ -42,4 +42,8 @@ public class DeviceList {
 	public boolean getDeviceStatus(String device) {
 		return instanceDeviceList.get(device);
 	}
+
+	public void markAsFree(String device) {
+		instanceDeviceList.put(device, true);
+	}
 }

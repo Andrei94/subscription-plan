@@ -56,6 +56,10 @@ public class VolumeTest {
 			@Override
 			public void attachVolume(String user, String volumeId) {
 			}
+
+			@Override
+			public void deleteVolume(String user, MountPoint mp) {
+			}
 		};
 	}
 }

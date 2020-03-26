@@ -92,7 +92,7 @@ class UserVolumeMountServiceTest {
 			public void sendCommand(SendCommandRequest req) {
 				assertEquals("AWS-RunShellScript", req.getDocumentName());
 				assertEquals("1", req.getDocumentVersion());
-				assertEquals(Collections.singletonList("mkfs -t xfs /dev/sdo && mkdir /mnt/user && mount /dev/sdo /mnt/user"), req.getParameters().get("commands"));
+				assertEquals(Collections.singletonList("mkfs -t xfs /dev/sdo && mkdir -p /mnt/user && mount /dev/sdo /mnt/user"), req.getParameters().get("commands"));
 				assertEquals(Collections.singletonList("40"), req.getParameters().get("executionTimeout"));
 				assertEquals(userVolumeMountService.ec2InstanceId, req.getInstanceIds().get(0));
 			}

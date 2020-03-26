@@ -13,6 +13,8 @@ public class HomeController {
 	public UserService userService;
 	@Inject
 	public VolumeService volumeService;
+	@Inject
+	public Scheduler scheduler;
 
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {
@@ -44,5 +46,20 @@ public class HomeController {
 		String volumeId = volumeService.createVolume();
 		volumeService.attachVolume(user, volumeId);
 		return volumeId;
+	}
+
+	@Get(value = "/scheduler/toS3")
+	void syncToS3() {
+		scheduler.syncUserFolderFromEBSToS3();
+	}
+
+	@Get(value = "/scheduler/shutdown")
+	void shutdown() {
+		scheduler.shutdownExecutors();
+	}
+
+	@Get(value = "/scheduler/restart")
+	void restart() {
+		scheduler.startExecutors();
 	}
 }
