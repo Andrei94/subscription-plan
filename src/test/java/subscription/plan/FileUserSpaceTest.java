@@ -19,8 +19,30 @@ class FileUserSpaceTest {
 	}
 
 	@Test
+	void getTotalSpaceOfInnexistentDrive() {
+		FileUserSpace fileUserSpace = new FileUserSpace() {
+			@Override
+			String getUserPathname(String username) {
+				return "QWE:\\";
+			}
+		};
+		assertEquals(0, fileUserSpace.getTotalSpace("username"));
+	}
+
+	@Test
 	void getAvailableSpaceOfCDrive() {
 		assertTrue(fileUserSpace.getUsableSpace("bogus") < fileUserSpace.getTotalSpace("bogus"));
+	}
+
+	@Test
+	void getAvailableSpaceOfInnexistentDrive() {
+		FileUserSpace fileUserSpace = new FileUserSpace() {
+			@Override
+			String getUserPathname(String username) {
+				return "QWE:\\";
+			}
+		};
+		assertEquals(0, fileUserSpace.getUsableSpace("username"));
 	}
 
 	@Test
