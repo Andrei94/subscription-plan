@@ -2,8 +2,7 @@ package subscription.plan;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DeviceListTest {
 	private final DeviceList deviceList = new DeviceList();
@@ -23,6 +22,17 @@ public class DeviceListTest {
 
 	private void deviceNotAvailable(String device) {
 		assertFalse(deviceList.getDeviceStatus(device));
+	}
+
+	@Test
+	void markDeviceAsFree() {
+		deviceList.markAsUsed("/dev/sdp");
+		deviceList.markAsFree("/dev/sdp");
+		deviceAvailable("/dev/sdp");
+	}
+
+	private void deviceAvailable(String device) {
+		assertTrue(deviceList.getDeviceStatus(device));
 	}
 
 	@Test
