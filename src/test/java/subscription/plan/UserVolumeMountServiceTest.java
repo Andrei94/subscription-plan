@@ -149,4 +149,70 @@ class UserVolumeMountServiceTest {
 		userMountsService.forEachUser((user, mountPoint) -> users.add(user));
 		assertEquals(2, users.size());
 	}
+
+	@Test
+	void dontDeleteEBSOfNonExistentUser() {
+		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
+			@Override
+			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public AttachVolumeResult attachVolume(AttachVolumeRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public void sendCommand(SendCommandRequest req) {
+				fail();
+			}
+
+			@Override
+			public void deleteEBSVolume(String volumeId) {
+				fail();
+			}
+		});
+		userVolumeMountService.deleteVolume(user, new MountPoint("/dev/sdo", volumeId));
+	}
+
+	@Test
+	void deleteEBSVolumeOfExistentUser() {
+		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
+			@Override
+			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public AttachVolumeResult attachVolume(AttachVolumeRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public void sendCommand(SendCommandRequest req) {
+				assertEquals("umount -l /dev/sdo && rm -rf /mnt/user", req.getParameters().get("commands").get(0));
+			}
+
+			@Override
+			public void deleteEBSVolume(String volumeId) {
+				assertEquals(volumeId, UserVolumeMountServiceTest.this.volumeId);
+			}
+		});
+		userMountsService.put(user, new MountPoint("/dev/sdo", volumeId));
+		deviceList.markAsUsed("/dev/sdo");
+
+		userVolumeMountService.deleteVolume(user, new MountPoint("/dev/sdo", volumeId));
+		assertTrue(deviceList.getDeviceStatus("/dev/sdo"));
+	}
 }

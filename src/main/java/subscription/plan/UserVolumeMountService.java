@@ -64,6 +64,8 @@ public class UserVolumeMountService implements VolumeService {
 
 	@Override
 	public void deleteVolume(String user, MountPoint mountPoint) {
+		if(!userService.userExists(user))
+			return;
 		awsAdapter.sendCommand(createShellCommandRequest("umount -l " + mountPoint.getDeviceName() + " && rm -rf /mnt/" + user));
 		deviceList.markAsFree(mountPoint.getDeviceName());
 		awsAdapter.deleteEBSVolume(mountPoint.getVolumeId());
