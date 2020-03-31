@@ -15,6 +15,8 @@ public class HomeController {
 	public VolumeService volumeService;
 	@Inject
 	public Scheduler scheduler;
+	@Inject
+	public DeviceList deviceList;
 
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {

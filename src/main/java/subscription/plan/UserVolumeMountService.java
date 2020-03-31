@@ -6,9 +6,7 @@ import io.micronaut.context.annotation.Value;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @Singleton
 public class UserVolumeMountService implements VolumeService {
@@ -49,8 +47,17 @@ public class UserVolumeMountService implements VolumeService {
 		MountPoint mp = new MountPoint(attachVolumeResult.getAttachment().getDevice(), attachVolumeResult.getAttachment().getVolumeId());
 		userService.put(user, mp);
 		deviceList.markAsUsed(mp.getDeviceName());
+		createUser(user);
 		makeMountPointAvailableToUser(user, mp);
-	}
+    }
+
+    public void createUser(String user) {
+        awsAdapter.sendCommand(createShellCommandRequest(("useradd -g sftpg {user} && " +
+                "mkdir -p /sftpg/{user}/data && " +
+                "chown -R root.sftpg /sftpg/{user} && chown -R {user}.sftpg /sftpg/{user}/data && " +
+                "echo \"{user}:$(openssl rand -base64 32  | cut -c1-32 | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e")
+                .replace("{user}", user)));
+    }
 
 	private void makeMountPointAvailableToUser(String user, MountPoint mp) {
 		awsAdapter.sendCommand(
