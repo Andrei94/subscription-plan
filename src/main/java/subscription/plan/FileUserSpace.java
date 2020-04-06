@@ -25,6 +25,6 @@ public class FileUserSpace implements UserSpace {
 	}
 
 	String getUserPathname(String username) {
-		return "/mnt/" + username;
+		return "/sftpg/" + username + "/data";
 	}
 }

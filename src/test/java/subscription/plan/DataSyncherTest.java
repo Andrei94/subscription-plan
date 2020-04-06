@@ -16,7 +16,7 @@ class DataSyncherTest {
 		dataSyncher = new DataSyncher() {
 			@Override
 			Process startAWSProcess(String... args) {
-				assertArrayEquals(new String[] {"s3", "sync", "/mnt/username", "s3://backedup-storage-2/username", "--delete"}, args);
+				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete"}, args);
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {
@@ -75,7 +75,7 @@ class DataSyncherTest {
 		dataSyncher = new DataSyncher() {
 			@Override
 			Process startAWSProcess(String... args) {
-				assertArrayEquals(new String[] {"s3", "sync", "/mnt/username", "s3://backedup-storage-2/username", "--delete"}, args);
+				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete"}, args);
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {
@@ -125,7 +125,7 @@ class DataSyncherTest {
 		dataSyncher = new DataSyncher() {
 			@Override
 			Process startAWSProcess(String... args) {
-				assertArrayEquals(new String[] {"s3", "sync", "s3://backedup-storage-2/username", "/mnt/username", "--delete"}, args);
+				assertArrayEquals(new String[] {"s3", "sync", "s3://backedup-storage-2/username", "/sftpg/username/data", "--delete"}, args);
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {

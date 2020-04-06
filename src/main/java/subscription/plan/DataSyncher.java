@@ -17,7 +17,7 @@ public class DataSyncher {
 		logger.info("execution started on " + Thread.currentThread() + " for user " + username);
 		if(!s3SyncRunningForUser(username)) {
 			try {
-				runningProcesses.put(username, startAWSProcess("s3", "sync", "/mnt/" + username, "s3://backedup-storage-2/" + username, "--delete"));
+				runningProcesses.put(username, startAWSProcess("s3", "sync", "/sftpg/" + username + "/data", "s3://backedup-storage-2/" + username, "--delete"));
 			} catch(IOException e) {
 				logger.error("An error occurred running aws sync s3", e);
 			}
@@ -32,7 +32,7 @@ public class DataSyncher {
 	public void syncS3ToEBSForUser(String username) {
 		logger.info("execution started on " + Thread.currentThread() + " for user " + username);
 		try {
-			startAWSProcess("s3", "sync", "s3://backedup-storage-2/" + username, "/mnt/" + username, "--delete");
+			startAWSProcess("s3", "sync", "s3://backedup-storage-2/" + username, "/sftpg/" + username + "/data", "--delete");
 		} catch(IOException e) {
 			logger.error("An error occurred running aws sync s3", e);
 		}

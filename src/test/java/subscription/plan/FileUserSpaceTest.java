@@ -47,6 +47,6 @@ class FileUserSpaceTest {
 
 	@Test
 	void getPathnameOfUserUsername1() {
-		assertEquals("/mnt/username1", new FileUserSpace().getUserPathname("username1"));
+		assertEquals("/sftpg/username1/data", new FileUserSpace().getUserPathname("username1"));
 	}
 }
