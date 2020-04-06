@@ -22,13 +22,13 @@ public class VolumeTest {
 	@Test
 	void volumeExistsForUser() {
 		String volume = createVolume("username");
-		assertEquals("vol-07aa2a8cf7b8b15d7", volume);
+		assertEquals("vol-07aa2a8cf7b8b15d7 token", volume);
 	}
 
 	@Test
 	void createVolumeForNewUser() {
 		String volume = createVolume("username2");
-		assertEquals("vol-07aa2a8cf7b8b15d9", volume);
+		assertEquals("vol-07aa2a8cf7b8b15d9 token", volume);
 	}
 
 	private String createVolume(String username) {
@@ -55,6 +55,11 @@ public class VolumeTest {
 
 			@Override
 			public void attachVolume(String user, String volumeId) {
+			}
+
+			@Override
+			public String getUserToken(String user) {
+				return "token";
 			}
 
 			@Override

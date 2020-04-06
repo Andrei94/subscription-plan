@@ -102,6 +102,7 @@ public class AWSClientAdapter implements AWSAdapter {
 				break;
 			sleep(100);
 		}
+		sleep(1000);
 	}
 
 	private void sleep(long milliseconds) {

@@ -6,6 +6,9 @@ import io.micronaut.context.annotation.Value;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 @Singleton
@@ -47,26 +50,35 @@ public class UserVolumeMountService implements VolumeService {
 		MountPoint mp = new MountPoint(attachVolumeResult.getAttachment().getDevice(), attachVolumeResult.getAttachment().getVolumeId());
 		userService.put(user, mp);
 		deviceList.markAsUsed(mp.getDeviceName());
-		createUser(user);
 		makeMountPointAvailableToUser(user, mp);
-    }
-
-    public void createUser(String user) {
-        awsAdapter.sendCommand(createShellCommandRequest(("useradd -g sftpg {user} && " +
-                "mkdir -p /sftpg/{user}/data && " +
-                "chown -R root.sftpg /sftpg/{user} && chown -R {user}.sftpg /sftpg/{user}/data && " +
-                "echo \"{user}:$(openssl rand -base64 32  | cut -c1-32 | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e")
-                .replace("{user}", user)));
     }
 
 	private void makeMountPointAvailableToUser(String user, MountPoint mp) {
 		awsAdapter.sendCommand(
-				createShellCommandRequest(
-						"mkfs -t xfs {mountPoint} && mkdir -p /mnt/{username} && mount {mountPoint} /mnt/{username}"
+				createShellCommandRequest((
+								"mkfs -t xfs {mountPoint} && mkdir -p /sftpg/{user}/data && mount {mountPoint} /sftpg/{user}/data && " +
+								"useradd -M -g sftpg {user} && " + // successful test performed without -M
+								"chown -R root.sftpg /sftpg/{user} && chown -R {user}.sftpg /sftpg/{user}/data && " +
+								"echo \"{user}:$(openssl rand -base64 32 | cut -c1-32 > /tmp/token{user} && cat /tmp/token{user} | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e")
 								.replace("{mountPoint}", mp.getDeviceName())
-								.replace("{username}", user)
+								.replace("{user}", user)
 				)
 		);
+	}
+
+	@Override
+	public String getUserToken(String user) {
+		File file = new File("/tmp/token" + user);
+		try {
+			Optional<String> first = Files.lines(file.toPath()).findFirst();
+			if(first.isPresent()) {
+				Files.delete(file.toPath());
+				return first.get();
+			}
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 
 	@Override
