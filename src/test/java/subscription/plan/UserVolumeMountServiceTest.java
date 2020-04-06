@@ -4,7 +4,6 @@ import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.simplesystemsmanagement.model.SendCommandRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Collections;
