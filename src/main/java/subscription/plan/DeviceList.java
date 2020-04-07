@@ -46,4 +46,8 @@ public class DeviceList {
 	public void markAsFree(String device) {
 		instanceDeviceList.put(device, true);
 	}
+
+	public long getFreeDeviceCount() {
+		return instanceDeviceList.values().stream().filter(free -> free).count();
+	}
 }

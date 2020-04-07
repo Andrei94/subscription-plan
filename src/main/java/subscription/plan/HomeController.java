@@ -64,4 +64,9 @@ public class HomeController {
 	void restart() {
 		scheduler.startExecutors();
 	}
+
+	@Get(value = "/freeDevicesCount")
+	long getFreeDevicesCount() {
+		return deviceList.getFreeDeviceCount();
+	}
 }

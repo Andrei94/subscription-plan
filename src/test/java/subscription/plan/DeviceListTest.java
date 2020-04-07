@@ -39,4 +39,15 @@ public class DeviceListTest {
 	void getFreeDevice() {
 		assertEquals("/dev/sdo", deviceList.getFreeDevice());
 	}
+
+	@Test
+	void countFreeDevices() {
+		assertEquals(18, deviceList.getFreeDeviceCount());
+	}
+
+	@Test
+	void markDeviceAsUsedGivesOneLessForCount() {
+		deviceList.markAsUsed("/dev/sdo");
+		assertEquals(17, deviceList.getFreeDeviceCount());
+	}
 }
