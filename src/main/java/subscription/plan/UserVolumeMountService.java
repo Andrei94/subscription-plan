@@ -21,6 +21,8 @@ public class UserVolumeMountService implements VolumeService {
 	public String ec2Region;
 	@Inject
 	public AWSAdapter awsAdapter;
+	@Inject
+	public TokenStore tokenStore;
 
 	public UserVolumeMountService(UserService userService, DeviceList deviceList) {
 		this.userService = userService;
@@ -68,12 +70,15 @@ public class UserVolumeMountService implements VolumeService {
 
 	@Override
 	public String getUserToken(String user) {
+		if(tokenStore.hasToken(user))
+			return tokenStore.getToken(user);
 		File file = new File("/tmp/token" + user);
 		try {
-			Optional<String> first = Files.lines(file.toPath()).findFirst();
-			if(first.isPresent()) {
+			Optional<String> token = Files.lines(file.toPath()).findFirst();
+			if(token.isPresent()) {
+				tokenStore.putToken(user, token.get());
 				Files.delete(file.toPath());
-				return first.get();
+				return token.get();
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
