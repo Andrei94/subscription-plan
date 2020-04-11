@@ -43,11 +43,11 @@ public class HomeController {
 	@Put(value = "/volume/createVolume/{username}")
 	String createVolume(@PathVariable("username") String user) {
 		if(userService.userExists(user)) {
-			return volumeService.getUserToken(user);
+			return userService.getVolumeId(user) + " " + volumeService.getUserToken(user);
 		}
 		String volumeId = volumeService.createVolume();
 		volumeService.attachVolume(user, volumeId);
-		return volumeService.getUserToken(user);
+		return volumeId + " " + volumeService.getUserToken(user);
 	}
 
 	@Get(value = "/scheduler/toS3")

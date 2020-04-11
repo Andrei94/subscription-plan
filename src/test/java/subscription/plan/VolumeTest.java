@@ -22,13 +22,13 @@ public class VolumeTest {
 	@Test
 	void volumeExistsForUser() {
 		String volume = createVolume("username");
-		assertEquals("token", volume);
+		assertEquals("vol-07aa2a8cf7b8b15d7 token", volume);
 	}
 
 	@Test
 	void createVolumeForNewUser() {
 		String volume = createVolume("username2");
-		assertEquals("token", volume);
+		assertEquals("vol-07aa2a8cf7b8b15d9 token", volume);
 	}
 
 	@Test
