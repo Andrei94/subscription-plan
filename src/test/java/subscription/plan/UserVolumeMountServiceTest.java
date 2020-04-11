@@ -91,9 +91,7 @@ class UserVolumeMountServiceTest {
 			public void sendCommand(SendCommandRequest req) {
 				assertEquals("AWS-RunShellScript", req.getDocumentName());
 				assertEquals("1", req.getDocumentVersion());
-				assertEquals(Collections.singletonList("mkfs -t xfs /dev/sdo && mkdir -p /sftpg/user/data && mount /dev/sdo /sftpg/user/data && useradd -M -g sftpg user && " +
-						"chown -R root.sftpg /sftpg/user && chown -R user.sftpg /sftpg/user/data && " +
-						"echo \"user:$(openssl rand -base64 32 | cut -c1-32 > /tmp/tokenuser && cat /tmp/tokenuser | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e"),
+				assertEquals(Collections.singletonList("mkfs -t xfs /dev/sdo && mount /dev/sdo /sftpg/user/data"),
 						req.getParameters().get("commands"));
 				assertEquals(Collections.singletonList("40"), req.getParameters().get("executionTimeout"));
 				assertEquals(userVolumeMountService.ec2InstanceId, req.getInstanceIds().get(0));
@@ -141,6 +139,57 @@ class UserVolumeMountServiceTest {
 		assertThrows(AmazonEC2Exception.class, () -> userVolumeMountService.attachVolume(user, volumeId));
 		assertFalse(userMountsService.userExists(user));
 		assertTrue(deviceList.getDeviceStatus(device));
+	}
+
+	@Test
+	void createUser() {
+		userVolumeMountService.setTokenStore(new TokenStore());
+		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
+			@Override
+			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public AttachVolumeResult attachVolume(AttachVolumeRequest req) {
+				throw new NotImplementedException();
+			}
+
+			@Override
+			public void sendCommand(SendCommandRequest req) {
+				assertEquals("AWS-RunShellScript", req.getDocumentName());
+				assertEquals("1", req.getDocumentVersion());
+				assertEquals(Collections.singletonList("mkdir -p /sftpg/username2/data && useradd -M -g sftpg username2 && " +
+								"chown -R root.sftpg /sftpg/username2 && " +
+								"chown -R username2.sftpg /sftpg/username2/data && " +
+								"echo \"username2:" +
+								"$(openssl rand -base64 32 | cut -c1-32 > /tmp/tokenusername2 && " +
+								"cat /tmp/tokenusername2 | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e"),
+						req.getParameters().get("commands"));
+				assertEquals(Collections.singletonList("40"), req.getParameters().get("executionTimeout"));
+				assertEquals(userVolumeMountService.ec2InstanceId, req.getInstanceIds().get(0));
+			}
+
+			@Override
+			public void deleteEBSVolume(String volumeId) {
+				throw new NotImplementedException();
+			}
+		});
+		userVolumeMountService.createUser("username2");
+	}
+
+	@Test
+	void createUserHasToken() {
+		TokenStore tokenStore = new TokenStore();
+		tokenStore.putToken(user, "token");
+		userVolumeMountService.setTokenStore(tokenStore);
+
+		assertEquals("token", userVolumeMountService.createUser(user));
 	}
 
 	@Test

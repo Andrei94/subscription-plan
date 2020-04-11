@@ -40,14 +40,14 @@ public class HomeController {
 		return new StorageSubscription(totalSpace - spaceForUser.getUsableSpace(user), totalSpace);
 	}
 
-	@Put(value = "/volume/{username}")
+	@Put(value = "/volume/createVolume/{username}")
 	String createVolume(@PathVariable("username") String user) {
 		if(userService.userExists(user)) {
-			return userService.getVolumeId(user) + " " + volumeService.getUserToken(user);
+			return volumeService.getUserToken(user);
 		}
 		String volumeId = volumeService.createVolume();
 		volumeService.attachVolume(user, volumeId);
-		return volumeId + " " + volumeService.getUserToken(user);
+		return volumeService.getUserToken(user);
 	}
 
 	@Get(value = "/scheduler/toS3")
@@ -68,5 +68,10 @@ public class HomeController {
 	@Get(value = "/freeDevicesCount")
 	long getFreeDevicesCount() {
 		return deviceList.getFreeDeviceCount();
+	}
+
+	@Put(value = "/volume/createUser/{username}")
+	String createUser(@PathVariable("username") String user) {
+		return volumeService.createUser(user);
 	}
 }

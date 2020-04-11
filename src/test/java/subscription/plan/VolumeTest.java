@@ -22,17 +22,30 @@ public class VolumeTest {
 	@Test
 	void volumeExistsForUser() {
 		String volume = createVolume("username");
-		assertEquals("vol-07aa2a8cf7b8b15d7 token", volume);
+		assertEquals("token", volume);
 	}
 
 	@Test
 	void createVolumeForNewUser() {
 		String volume = createVolume("username2");
-		assertEquals("vol-07aa2a8cf7b8b15d9 token", volume);
+		assertEquals("token", volume);
+	}
+
+	@Test
+	void createUser() {
+		String user = createUser("user");
+		assertEquals("user", user);
 	}
 
 	private String createVolume(String username) {
-		HttpRequest<String> put = HttpRequest.PUT("/volume/" + username, "");
+		HttpRequest<String> put = HttpRequest.PUT("/volume/createVolume/" + username, "");
+		HttpResponse<String> exchange = client.toBlocking().exchange(put, String.class);
+		assertEquals(200, exchange.getStatus().getCode());
+		return Objects.requireNonNull(exchange.body());
+	}
+
+	private String createUser(String username) {
+		HttpRequest<String> put = HttpRequest.PUT("/volume/createUser/" + username, "");
 		HttpResponse<String> exchange = client.toBlocking().exchange(put, String.class);
 		assertEquals(200, exchange.getStatus().getCode());
 		return Objects.requireNonNull(exchange.body());
@@ -55,6 +68,11 @@ public class VolumeTest {
 
 			@Override
 			public void attachVolume(String user, String volumeId) {
+			}
+
+			@Override
+			public String createUser(String user) {
+				return "user";
 			}
 
 			@Override

@@ -53,19 +53,24 @@ public class UserVolumeMountService implements VolumeService {
 		userService.put(user, mp);
 		deviceList.markAsUsed(mp.getDeviceName());
 		makeMountPointAvailableToUser(user, mp);
-    }
+	}
 
 	private void makeMountPointAvailableToUser(String user, MountPoint mp) {
-		awsAdapter.sendCommand(
-				createShellCommandRequest((
-								"mkfs -t xfs {mountPoint} && mkdir -p /sftpg/{user}/data && mount {mountPoint} /sftpg/{user}/data && " +
-								"useradd -M -g sftpg {user} && " + // successful test performed without -M
-								"chown -R root.sftpg /sftpg/{user} && chown -R {user}.sftpg /sftpg/{user}/data && " +
-								"echo \"{user}:$(openssl rand -base64 32 | cut -c1-32 > /tmp/token{user} && cat /tmp/token{user} | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e")
-								.replace("{mountPoint}", mp.getDeviceName())
-								.replace("{user}", user)
-				)
-		);
+		awsAdapter.sendCommand(createShellCommandRequest(("mkfs -t xfs {mountPoint} && mount {mountPoint} /sftpg/{user}/data"
+				.replace("{mountPoint}", mp.getDeviceName())
+				.replace("{user}", user))
+		));
+	}
+
+	@Override
+	public String createUser(String user) {
+		if(tokenStore.hasToken(user))
+			return tokenStore.getToken(user);
+		awsAdapter.sendCommand(createShellCommandRequest(("mkdir -p /sftpg/{user}/data && useradd -M -g sftpg {user} && " +
+				"chown -R root.sftpg /sftpg/{user} && chown -R {user}.sftpg /sftpg/{user}/data && " +
+				"echo \"{user}:$(openssl rand -base64 32 | cut -c1-32 > /tmp/token{user} && cat /tmp/token{user} | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e")
+				.replace("{user}", user)));
+		return getUserToken(user);
 	}
 
 	@Override
@@ -108,5 +113,9 @@ public class UserVolumeMountService implements VolumeService {
 
 	void setAwsAdapter(AWSAdapter awsAdapter) {
 		this.awsAdapter = awsAdapter;
+	}
+
+	void setTokenStore(TokenStore tokenStore) {
+		this.tokenStore = tokenStore;
 	}
 }
