@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,7 +31,7 @@ class UserVolumeMountServiceTest {
 	void createVolume() {
 		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
 		userVolumeMountService.ec2Region = "eu-central-1a";
-		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
+		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
 				assertEquals(500, req.getSize());
@@ -42,21 +43,6 @@ class UserVolumeMountServiceTest {
 			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
 				return new DescribeVolumesResult().withVolumes(new Volume().withVolumeId(volumeId).withState(VolumeState.Available));
 			}
-
-			@Override
-			public AttachVolumeResult attachVolume(AttachVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public void sendCommand(SendCommandRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public void deleteEBSVolume(String volumeId) {
-				throw new NotImplementedException();
-			}
 		});
 		assertEquals(volumeId, userVolumeMountService.createVolume());
 	}
@@ -64,12 +50,7 @@ class UserVolumeMountServiceTest {
 	@Test
 	void attachVolume() {
 		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
-		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
-			@Override
-			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
+		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
 				return new DescribeVolumesResult()
@@ -88,18 +69,17 @@ class UserVolumeMountServiceTest {
 			}
 
 			@Override
-			public void sendCommand(SendCommandRequest req) {
+			public void sendCommandAsync(SendCommandRequest req) {
 				assertEquals("AWS-RunShellScript", req.getDocumentName());
 				assertEquals("1", req.getDocumentVersion());
-				assertEquals(Collections.singletonList("mkfs -t xfs /dev/sdo && mount /dev/sdo /sftpg/user/data"),
+				assertEquals(Arrays.asList("mkfs -t xfs /dev/sdo",
+						"mkdir -p /sftpg/user/data",
+						"mount /dev/sdo /sftpg/user/data",
+						"chown root.sftpg /sftpg/user/",
+						"chown -R user.sftpg /sftpg/user/data"),
 						req.getParameters().get("commands"));
 				assertEquals(Collections.singletonList("40"), req.getParameters().get("executionTimeout"));
 				assertEquals(userVolumeMountService.ec2InstanceId, req.getInstanceIds().get(0));
-			}
-
-			@Override
-			public void deleteEBSVolume(String volumeId) {
-				throw new NotImplementedException();
 			}
 		});
 		userVolumeMountService.attachVolume(user, volumeId);
@@ -110,30 +90,10 @@ class UserVolumeMountServiceTest {
 
 	@Test
 	void attachVolumeFailed() {
-		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
-			@Override
-			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
-				throw new NotImplementedException();
-			}
-
+		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public AttachVolumeResult attachVolume(AttachVolumeRequest req) {
 				throw new AmazonEC2Exception("exception");
-			}
-
-			@Override
-			public void sendCommand(SendCommandRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public void deleteEBSVolume(String volumeId) {
-				throw new NotImplementedException();
 			}
 		});
 		assertThrows(AmazonEC2Exception.class, () -> userVolumeMountService.attachVolume(user, volumeId));
@@ -144,40 +104,18 @@ class UserVolumeMountServiceTest {
 	@Test
 	void createUser() {
 		userVolumeMountService.setTokenStore(new TokenStore());
-		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
-			@Override
-			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public AttachVolumeResult attachVolume(AttachVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
+		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public void sendCommand(SendCommandRequest req) {
 				assertEquals("AWS-RunShellScript", req.getDocumentName());
 				assertEquals("1", req.getDocumentVersion());
-				assertEquals(Collections.singletonList("mkdir -p /sftpg/username2/data && useradd -M -g sftpg username2 && " +
-								"chown -R root.sftpg /sftpg/username2 && " +
-								"chown -R username2.sftpg /sftpg/username2/data && " +
+				assertEquals(Arrays.asList("useradd -g sftpg username2",
 								"echo \"username2:" +
 								"$(openssl rand -base64 32 | cut -c1-32 > /tmp/tokenusername2 && " +
 								"cat /tmp/tokenusername2 | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e"),
 						req.getParameters().get("commands"));
 				assertEquals(Collections.singletonList("40"), req.getParameters().get("executionTimeout"));
 				assertEquals(userVolumeMountService.ec2InstanceId, req.getInstanceIds().get(0));
-			}
-
-			@Override
-			public void deleteEBSVolume(String volumeId) {
-				throw new NotImplementedException();
 			}
 		});
 		userVolumeMountService.createUser("username2");
@@ -203,22 +141,7 @@ class UserVolumeMountServiceTest {
 
 	@Test
 	void dontDeleteEBSOfNonExistentUser() {
-		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
-			@Override
-			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public AttachVolumeResult attachVolume(AttachVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
+		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public void sendCommand(SendCommandRequest req) {
 				fail();
@@ -234,25 +157,10 @@ class UserVolumeMountServiceTest {
 
 	@Test
 	void deleteEBSVolumeOfExistentUser() {
-		userVolumeMountService.setAwsAdapter(new AWSAdapter() {
-			@Override
-			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
-				throw new NotImplementedException();
-			}
-
-			@Override
-			public AttachVolumeResult attachVolume(AttachVolumeRequest req) {
-				throw new NotImplementedException();
-			}
-
+		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public void sendCommand(SendCommandRequest req) {
-				assertEquals("umount -l /dev/sdo && rm -rf /mnt/user", req.getParameters().get("commands").get(0));
+				assertEquals("umount -l /dev/sdo && rm -rf /sftpg/user/data/", req.getParameters().get("commands").get(0));
 			}
 
 			@Override

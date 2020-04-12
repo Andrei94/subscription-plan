@@ -9,7 +9,12 @@ import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Singleton
 public class UserVolumeMountService implements VolumeService {
@@ -50,26 +55,27 @@ public class UserVolumeMountService implements VolumeService {
 		String device = deviceList.getFreeDevice();
 		AttachVolumeResult attachVolumeResult = awsAdapter.attachVolume(new AttachVolumeRequest(volumeId, ec2InstanceId, device));
 		MountPoint mp = new MountPoint(attachVolumeResult.getAttachment().getDevice(), attachVolumeResult.getAttachment().getVolumeId());
+		makeMountPointAvailableToUser(user, mp);
 		userService.put(user, mp);
 		deviceList.markAsUsed(mp.getDeviceName());
-		makeMountPointAvailableToUser(user, mp);
 	}
 
 	private void makeMountPointAvailableToUser(String user, MountPoint mp) {
-		awsAdapter.sendCommand(createShellCommandRequest(("mkfs -t xfs {mountPoint} && mount {mountPoint} /sftpg/{user}/data"
-				.replace("{mountPoint}", mp.getDeviceName())
-				.replace("{user}", user))
-		));
+		awsAdapter.sendCommandAsync(createShellCommandRequest(Stream.of("mkfs -t xfs {mountPoint}",
+				"mkdir -p /sftpg/{user}/data",
+				"mount {mountPoint} /sftpg/{user}/data",
+				"chown root.sftpg /sftpg/{user}/",
+				"chown -R {user}.sftpg /sftpg/{user}/data")
+				.map(value -> value.replace("{user}", user).replace("{mountPoint}", mp.getDeviceName())).collect(Collectors.toList())));
 	}
 
 	@Override
 	public String createUser(String user) {
 		if(tokenStore.hasToken(user))
 			return tokenStore.getToken(user);
-		awsAdapter.sendCommand(createShellCommandRequest(("mkdir -p /sftpg/{user}/data && useradd -M -g sftpg {user} && " +
-				"chown -R root.sftpg /sftpg/{user} && chown -R {user}.sftpg /sftpg/{user}/data && " +
+		awsAdapter.sendCommand(createShellCommandRequest(Stream.of("useradd -g sftpg {user}",
 				"echo \"{user}:$(openssl rand -base64 32 | cut -c1-32 > /tmp/token{user} && cat /tmp/token{user} | openssl passwd -1 -stdin -salt tnGKMjFm)\" | chpasswd -e")
-				.replace("{user}", user)));
+				.map(value -> value.replace("{user}", user)).collect(Collectors.toList())));
 		return getUserToken(user);
 	}
 
@@ -95,9 +101,20 @@ public class UserVolumeMountService implements VolumeService {
 	public void deleteVolume(String user, MountPoint mountPoint) {
 		if(!userService.userExists(user))
 			return;
-		awsAdapter.sendCommand(createShellCommandRequest("umount -l " + mountPoint.getDeviceName() + " && rm -rf /mnt/" + user));
+		awsAdapter.sendCommand(createShellCommandRequest("umount -l " + mountPoint.getDeviceName() + " && rm -rf /sftpg/" + user + "/data/"));
 		deviceList.markAsFree(mountPoint.getDeviceName());
 		awsAdapter.deleteEBSVolume(mountPoint.getVolumeId());
+	}
+
+	private SendCommandRequest createShellCommandRequest(List<String> commands) {
+		return new SendCommandRequest()
+				.withDocumentName("AWS-RunShellScript")
+				.withDocumentVersion("1")
+				.withParameters(new HashMap<String, List<String>>() {{
+					put("commands", commands);
+					put("executionTimeout", Collections.singletonList("40"));
+				}})
+				.withInstanceIds(ec2InstanceId);
 	}
 
 	private SendCommandRequest createShellCommandRequest(String command) {

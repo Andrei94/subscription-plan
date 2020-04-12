@@ -15,12 +15,15 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Singleton;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Singleton
 public class AWSClientAdapter implements AWSAdapter {
 	private Logger logger = LoggerFactory.getLogger(AWSClientAdapter.class);
 	private AmazonEC2Async ec2Client = AmazonEC2AsyncClientBuilder.standard().withCredentials(new ProfileCredentialsProvider("default")).withRegion(Regions.EU_CENTRAL_1).build();
 	private AWSSimpleSystemsManagementAsync ssm = AWSSimpleSystemsManagementAsyncClientBuilder.standard().withCredentials(new ProfileCredentialsProvider("default")).withRegion(Regions.EU_CENTRAL_1).build();
+	private ExecutorService commandExecutors = Executors.newFixedThreadPool(3);
 
 	@Override
 	public CreateVolumeResult createVolume(CreateVolumeRequest req) {
@@ -51,7 +54,7 @@ public class AWSClientAdapter implements AWSAdapter {
 			GetCommandInvocationResult result;
 			logger.info("CommandId: {}, InstanceId: {}", sendCommandResult.getCommand().getCommandId(), req.getInstanceIds().get(0));
 			do {
-				sleep(1000);
+				sleep(200);
 				result = ssm.getCommandInvocation(new GetCommandInvocationRequest()
 						.withCommandId(sendCommandResult.getCommand().getCommandId())
 						.withInstanceId(req.getInstanceIds().get(0)));
@@ -60,6 +63,11 @@ public class AWSClientAdapter implements AWSAdapter {
 		} catch(InterruptedException | ExecutionException | InvocationDoesNotExistException e) {
 			logger.error("Who dares not to obey my commands?", e);
 		}
+	}
+
+	@Override
+	public void sendCommandAsync(SendCommandRequest shellCommandRequest) {
+		commandExecutors.execute(() -> sendCommand(shellCommandRequest));
 	}
 
 	@Override

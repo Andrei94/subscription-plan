@@ -12,5 +12,7 @@ public interface AWSAdapter {
 
 	void sendCommand(SendCommandRequest req);
 
+	void sendCommandAsync(SendCommandRequest shellCommandRequest);
+
 	void deleteEBSVolume(String volumeId);
 }
