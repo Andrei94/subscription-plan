@@ -10,4 +10,8 @@ public interface VolumeService {
 	String getUserToken(String user);
 
 	void deleteVolume(String user, MountPoint mp);
+
+	boolean tokenHashMatch(String user, String token);
+
+	String getTokenHash(String user);
 }

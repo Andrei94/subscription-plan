@@ -40,14 +40,16 @@ public class HomeController {
 		return new StorageSubscription(totalSpace - spaceForUser.getUsableSpace(user), totalSpace);
 	}
 
-	@Put(value = "/volume/createVolume/{username}")
-	String createVolume(@PathVariable("username") String user) {
-		if(userService.userExists(user)) {
-			return userService.getVolumeId(user) + " " + volumeService.getUserToken(user);
+	@Put(value = "/volume/createVolume/")
+	String createVolume(@Body CreateVolumeForUserRequest request) {
+		if(!volumeService.tokenHashMatch(request.getUsername(), request.getToken()))
+			return "invalid token";
+		if(userService.userExists(request.getUsername())) {
+			return userService.getVolumeId(request.getUsername()) + " " + volumeService.getTokenHash(request.getUsername());
 		}
 		String volumeId = volumeService.createVolume();
-		volumeService.attachVolume(user, volumeId);
-		return volumeId + " " + volumeService.getUserToken(user);
+		volumeService.attachVolume(request.getUsername(), volumeId);
+		return volumeId + " " + volumeService.getTokenHash(request.getUsername());
 	}
 
 	@Get(value = "/scheduler/toS3")

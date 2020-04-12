@@ -135,4 +135,14 @@ public class UserVolumeMountService implements VolumeService {
 	void setTokenStore(TokenStore tokenStore) {
 		this.tokenStore = tokenStore;
 	}
+
+	@Override
+	public boolean tokenHashMatch(String user, String token) {
+		return tokenStore.getHashedToken(user).equals(token);
+	}
+
+	@Override
+	public String getTokenHash(String user) {
+		return tokenStore.getHashedToken(user);
+	}
 }
