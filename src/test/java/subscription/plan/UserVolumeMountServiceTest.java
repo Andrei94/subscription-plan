@@ -160,7 +160,7 @@ class UserVolumeMountServiceTest {
 		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public void sendCommand(SendCommandRequest req) {
-				assertEquals("umount -l /dev/sdo && rm -rf /sftpg/user/data/", req.getParameters().get("commands").get(0));
+				assertEquals(Arrays.asList("umount -l /dev/sdo", "rm -rf /sftpg/user/data/"), req.getParameters().get("commands"));
 			}
 
 			@Override

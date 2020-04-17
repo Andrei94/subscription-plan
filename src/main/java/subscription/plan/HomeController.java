@@ -14,8 +14,6 @@ public class HomeController {
 	@Inject
 	public VolumeService volumeService;
 	@Inject
-	public Scheduler scheduler;
-	@Inject
 	public DeviceList deviceList;
 
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
@@ -50,21 +48,6 @@ public class HomeController {
 		String volumeId = volumeService.createVolume();
 		volumeService.attachVolume(request.getUsername(), volumeId);
 		return volumeId + " " + volumeService.getTokenHash(request.getUsername());
-	}
-
-	@Get(value = "/scheduler/toS3")
-	void syncToS3() {
-		scheduler.syncUserFolderFromEBSToS3();
-	}
-
-	@Get(value = "/scheduler/shutdown")
-	void shutdown() {
-		scheduler.shutdownExecutors();
-	}
-
-	@Get(value = "/scheduler/restart")
-	void restart() {
-		scheduler.startExecutors();
 	}
 
 	@Get(value = "/freeDevicesCount")
