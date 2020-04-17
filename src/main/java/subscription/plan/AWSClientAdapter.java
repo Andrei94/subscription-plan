@@ -9,11 +9,14 @@ import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementAsync;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementAsyncClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.model.*;
+import com.amazonaws.util.EC2MetadataUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,6 +71,18 @@ public class AWSClientAdapter implements AWSAdapter {
 	@Override
 	public void sendCommandAsync(SendCommandRequest shellCommandRequest) {
 		commandExecutors.execute(() -> sendCommand(shellCommandRequest));
+	}
+
+	@Override
+	public SendCommandRequest createShellCommandRequest(List<String> commands) {
+		return new SendCommandRequest()
+				.withDocumentName("AWS-RunShellScript")
+				.withDocumentVersion("1")
+				.withParameters(new HashMap<String, List<String>>() {{
+					put("commands", commands);
+					put("executionTimeout", Collections.singletonList("40"));
+				}})
+				.withInstanceIds(EC2MetadataUtils.getInstanceId());
 	}
 
 	@Override

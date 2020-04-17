@@ -30,7 +30,7 @@ class UserVolumeMountServiceTest {
 	@Test
 	void createVolume() {
 		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
-		userVolumeMountService.ec2Region = "eu-central-1a";
+		userVolumeMountService.ec2AvailabilityZone = "eu-central-1a";
 		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
@@ -103,6 +103,7 @@ class UserVolumeMountServiceTest {
 
 	@Test
 	void createUser() {
+		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
 		userVolumeMountService.setTokenStore(new TokenStore());
 		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
