@@ -4,6 +4,7 @@ import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
 
 import javax.inject.Inject;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Controller
 public class HomeController {
@@ -58,5 +59,18 @@ public class HomeController {
 	@Put(value = "/volume/createUser/{username}")
 	String createUser(@PathVariable("username") String user) {
 		return volumeService.createUser(user);
+	}
+
+	@Post(value = "/volume/deleteUser/{username}")
+	boolean deleteUser(@PathVariable("username") String username) {
+		AtomicBoolean found = new AtomicBoolean(false);
+		userService.forEachUser((user, mountPoint) -> {
+			if(username.equals(user)) {
+				volumeService.deleteVolume(user, mountPoint);
+				userService.deleteUser(username);
+				found.set(true);
+			}
+		});
+		return found.get();
 	}
 }

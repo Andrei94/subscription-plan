@@ -10,4 +10,6 @@ public interface UserService {
 	String getVolumeId(String user);
 
 	void forEachUser(BiConsumer<String, MountPoint> action);
+
+	void deleteUser(String user);
 }

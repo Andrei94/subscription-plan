@@ -42,4 +42,9 @@ public class TokenStore {
 		}
 		return "";
 	}
+
+	public void delete(String user) {
+		tokenStore.put(user, "");
+		tokenStore.remove(user);
+	}
 }
