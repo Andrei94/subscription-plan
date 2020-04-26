@@ -27,7 +27,7 @@ public class HomeControllerTest {
 		assertEquals(1024L * 1024L * 1024L * 1024L - 1, subscriptionConfirmation.getFreeSize());
 		assertEquals("backedup-storage-2", subscriptionConfirmation.getBucketName());
 		assertEquals("INTELLIGENT_TIERING", subscriptionConfirmation.getStorageClass());
-		assertEquals("username/", subscriptionConfirmation.getUserPath());
+		assertEquals("username/My Local PC/", subscriptionConfirmation.getUserPath());
 	}
 
 	@Test
@@ -36,7 +36,7 @@ public class HomeControllerTest {
 		assertEquals(512L * 1024L * 1024L * 1024L - 1, subscriptionConfirmation.getFreeSize());
 		assertEquals("backedup-storage-2", subscriptionConfirmation.getBucketName());
 		assertEquals("INTELLIGENT_TIERING", subscriptionConfirmation.getStorageClass());
-		assertEquals("username2/", subscriptionConfirmation.getUserPath());
+		assertEquals("username2/My Local PC/", subscriptionConfirmation.getUserPath());
 	}
 
 	@Test
@@ -45,7 +45,7 @@ public class HomeControllerTest {
 		assertEquals(256L * 1024L * 1024L * 1024L - 1, subscriptionConfirmation.getFreeSize());
 		assertEquals("backedup-storage-2", subscriptionConfirmation.getBucketName());
 		assertEquals("INTELLIGENT_TIERING", subscriptionConfirmation.getStorageClass());
-		assertEquals("username3/", subscriptionConfirmation.getUserPath());
+		assertEquals("username3/My Local PC/", subscriptionConfirmation.getUserPath());
 	}
 
 	@Test

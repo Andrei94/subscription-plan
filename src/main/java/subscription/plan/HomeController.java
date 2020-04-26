@@ -20,11 +20,12 @@ public class HomeController {
 	@Put(value = "/checkStorage", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
 	SubscriptionConfirmation checkStorage(@Body SubscriptionPlan plan) {
 		long userPlanSize = spaceForUser.getUsableSpace(plan.getUser());
+		String backupFolder = "My Local PC";
 		if(assertPlanSize(userPlanSize, plan.getUsedSize()))
 			return new SubscriptionConfirmation()
 					.withBucketName("backedup-storage-2")
 					.withStorageClass("INTELLIGENT_TIERING")
-					.withUserPath(plan.getUser() + "/")
+					.withUserPath(plan.getUser() + "/" + backupFolder + "/")
 					.withFreeSize(userPlanSize - plan.getUsedSize());
 		return new SubscriptionConfirmation().withFreeSize(0);
 	}

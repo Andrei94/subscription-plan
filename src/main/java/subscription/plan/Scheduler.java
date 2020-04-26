@@ -27,7 +27,10 @@ public class Scheduler {
 	public void syncUserFolderFromEBSToS3() {
 		if(syncExecutors.isShutdown())
 			return;
-		userService.forEachUser((user, mount) -> syncExecutors.execute(() -> syncher.syncEbsToS3ForUser(user)));
+		userService.forEachUser((user, mount) -> syncExecutors.execute(() -> {
+			syncher.syncEbsToS3ForUser(user);
+			syncher.syncS3BackupToEbs(user);
+		}));
 	}
 
 	// run daily at 00:10
