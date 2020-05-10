@@ -3,6 +3,7 @@ package subscription.plan;
 import io.micronaut.scheduling.annotation.Scheduled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import subscription.plan.locking.FileLockingService;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -21,6 +22,8 @@ public class Scheduler {
 	public VolumeService volumeService;
 	@Inject
 	public AWSAdapter awsAdapter;
+	@Inject
+	private FileLockingService fileLockingService;
 
 	//run every minute between 05:00 and 00:00 the next day
 	@Scheduled(cron = "* 5-23,0 * * *")
@@ -28,7 +31,7 @@ public class Scheduler {
 		if(syncExecutors.isShutdown())
 			return;
 		userService.forEachUser((user, mount) -> syncExecutors.execute(() -> {
-			syncher.syncEbsToS3ForUser(user);
+			syncher.syncEbsToS3ForUser(user, fileLockingService.getLockedFiles());
 			syncher.syncS3BackupToEbs(user);
 		}));
 	}

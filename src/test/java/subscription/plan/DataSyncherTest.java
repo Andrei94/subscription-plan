@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,8 +17,8 @@ class DataSyncherTest {
 	void syncEbsToS3FinishedWork() {
 		dataSyncher = new DataSyncher() {
 			@Override
-			Process startAWSProcess(String... args) {
-				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete", "--exclude", "*My Local PC/*"}, args);
+			Process startAWSProcess(List<String> args) {
+				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete", "--exclude", "*My Local PC/*", "--exclude", "file1","--exclude", "file2"}, args.toArray());
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {
@@ -54,7 +56,7 @@ class DataSyncherTest {
 				};
 			}
 		};
-		dataSyncher.syncEbsToS3ForUser("username");
+		dataSyncher.syncEbsToS3ForUser("username", Arrays.asList("file1", "file2"));
 		assertFalse(dataSyncher.s3SyncRunningForUser("username"));
 	}
 
@@ -62,11 +64,11 @@ class DataSyncherTest {
 	void syncEbsToS3ForUserCatchesIOException() {
 		dataSyncher = new DataSyncher() {
 			@Override
-			Process startAWSProcess(String... args) throws IOException {
+			Process startAWSProcess(List<String> args) throws IOException {
 				throw new IOException();
 			}
 		};
-		assertDoesNotThrow(() -> dataSyncher.syncEbsToS3ForUser("username"));
+		assertDoesNotThrow(() -> dataSyncher.syncEbsToS3ForUser("username", Arrays.asList("file1", "file2")));
 	}
 
 	@Test
@@ -74,8 +76,8 @@ class DataSyncherTest {
 		boolean[] alive = {true};
 		dataSyncher = new DataSyncher() {
 			@Override
-			Process startAWSProcess(String... args) {
-				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete", "--exclude", "*My Local PC/*"}, args);
+			Process startAWSProcess(List<String> args) {
+				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete", "--exclude", "*My Local PC/*", "--exclude", "file1","--exclude", "file2"}, args.toArray());
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {
@@ -113,10 +115,10 @@ class DataSyncherTest {
 				};
 			}
 		};
-		dataSyncher.syncEbsToS3ForUser("username");
+		dataSyncher.syncEbsToS3ForUser("username", Arrays.asList("file1", "file2"));
 		assertTrue(dataSyncher.s3SyncRunningForUser("username"));
 		alive[0] = false;
-		dataSyncher.syncEbsToS3ForUser("username");
+		dataSyncher.syncEbsToS3ForUser("username", Arrays.asList("file1", "file2"));
 		assertFalse(dataSyncher.s3SyncRunningForUser("username"));
 	}
 
@@ -124,8 +126,8 @@ class DataSyncherTest {
 	void syncS3ToEBSForUser() {
 		dataSyncher = new DataSyncher() {
 			@Override
-			Process startAWSProcess(String... args) {
-				assertArrayEquals(new String[] {"s3", "sync", "s3://backedup-storage-2/username", "/sftpg/username/data", "--delete"}, args);
+			Process startAWSProcess(List<String> args) {
+				assertArrayEquals(new String[] {"s3", "sync", "s3://backedup-storage-2/username", "/sftpg/username/data", "--delete"}, args.toArray());
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {
@@ -165,7 +167,7 @@ class DataSyncherTest {
 	void syncS3ToEBSForUserProcessThrowsException() {
 		dataSyncher = new DataSyncher() {
 			@Override
-			Process startAWSProcess(String... args) throws IOException {
+			Process startAWSProcess(List<String> args) throws IOException {
 				throw new IOException();
 			}
 		};
