@@ -11,3 +11,9 @@ micronaut:
             - http://localhost:4200
           allowedMethods:
             - GET
+  ssl:
+    enabled: true
+    key-store:
+      path: classpath:ec2-1.p12
+      password: "{password}"
+      type: PKCS12
