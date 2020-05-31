@@ -14,6 +14,6 @@ micronaut:
   ssl:
     enabled: true
     key-store:
-      path: classpath:ec2-1.p12
+      path: classpath:ec2.p12
       password: "{password}"
       type: PKCS12
