@@ -9,7 +9,17 @@
         </encoder>
     </appender>
 
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <withJansi>false</withJansi>
+        <file>subscription-plan.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray([%thread]) %highlight(%-5level) %magenta(%logger{36}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <root level="info">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
 </configuration>
