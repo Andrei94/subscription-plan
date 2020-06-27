@@ -1,6 +1,6 @@
 package subscription.plan;
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2Async;
@@ -23,10 +23,10 @@ import java.util.concurrent.Executors;
 
 @Singleton
 public class AWSClientAdapter implements AWSAdapter {
-	private Logger logger = LoggerFactory.getLogger(AWSClientAdapter.class);
-	private AmazonEC2Async ec2Client = AmazonEC2AsyncClientBuilder.standard().withCredentials(new ProfileCredentialsProvider("default")).withRegion(Regions.EU_CENTRAL_1).build();
-	private AWSSimpleSystemsManagementAsync ssm = AWSSimpleSystemsManagementAsyncClientBuilder.standard().withCredentials(new ProfileCredentialsProvider("default")).withRegion(Regions.EU_CENTRAL_1).build();
-	private ExecutorService commandExecutors = Executors.newFixedThreadPool(3);
+	private final Logger logger = LoggerFactory.getLogger(AWSClientAdapter.class);
+	private final AmazonEC2Async ec2Client = AmazonEC2AsyncClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider.getInstance()).withRegion(Regions.EU_CENTRAL_1).build();
+	private final AWSSimpleSystemsManagementAsync ssm = AWSSimpleSystemsManagementAsyncClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider.getInstance()).withRegion(Regions.EU_CENTRAL_1).build();
+	private final ExecutorService commandExecutors = Executors.newFixedThreadPool(3);
 
 	@Override
 	public CreateVolumeResult createVolume(CreateVolumeRequest req) {
