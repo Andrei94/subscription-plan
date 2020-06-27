@@ -74,6 +74,12 @@ public class VolumeTest {
 		tokenStore.putToken("username2", "token2");
 		UserVolumeMountService volumeService = new UserVolumeMountService(userMountsService(), new DeviceList()) {
 			@Override
+			public void initializeEC2Environment() {
+				this.ec2InstanceId = "i-dmkj1892jdiu1";
+				this.ec2AvailabilityZone = "eu-central-1a";
+			}
+
+			@Override
 			public String createVolume() {
 				return "vol-07aa2a8cf7b8b15d9";
 			}

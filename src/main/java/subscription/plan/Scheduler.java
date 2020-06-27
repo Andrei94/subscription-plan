@@ -15,7 +15,8 @@ public class Scheduler {
 	private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
 	private ExecutorService syncExecutors = Executors.newFixedThreadPool(20);
 	private ExecutorService shutdownExecutors = Executors.newFixedThreadPool(10);
-	private DataSyncher syncher = new DataSyncher();
+	@Inject
+	private DataSyncher syncher;
 	@Inject
 	public UserService userService;
 	@Inject

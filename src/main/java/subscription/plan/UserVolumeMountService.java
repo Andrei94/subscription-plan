@@ -24,10 +24,16 @@ public class UserVolumeMountService implements VolumeService {
 	public AWSAdapter awsAdapter;
 	@Inject
 	public TokenStore tokenStore;
+	@Inject
+	public DataSyncher syncher;
 
 	public UserVolumeMountService(UserService userService, DeviceList deviceList) {
 		this.userService = userService;
 		this.deviceList = deviceList;
+		initializeEC2Environment();
+	}
+
+	public void initializeEC2Environment() {
 		this.ec2InstanceId = EC2MetadataUtils.getInstanceId();
 		this.ec2AvailabilityZone = EC2MetadataUtils.getAvailabilityZone();
 	}
@@ -55,10 +61,11 @@ public class UserVolumeMountService implements VolumeService {
 		makeMountPointAvailableToUser(user, mp);
 		userService.put(user, mp);
 		deviceList.markAsUsed(mp.getDeviceName());
+		syncher.downloadUserData(user);
 	}
 
 	private void makeMountPointAvailableToUser(String user, MountPoint mp) {
-		awsAdapter.sendCommandAsync(awsAdapter.createShellCommandRequest(Stream.of(
+		awsAdapter.sendCommand(awsAdapter.createShellCommandRequest(Stream.of(
 				"mkfs -t xfs {mountPoint}",
 				"mkdir -p /sftpg/{user}/data",
 				"mount {mountPoint} /sftpg/{user}/data",
@@ -114,6 +121,10 @@ public class UserVolumeMountService implements VolumeService {
 
 	void setTokenStore(TokenStore tokenStore) {
 		this.tokenStore = tokenStore;
+	}
+
+	void setDataSyncher(DataSyncher syncher) {
+		this.syncher = syncher;
 	}
 
 	@Override

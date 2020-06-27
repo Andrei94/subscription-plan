@@ -18,7 +18,7 @@ class DataSyncherTest {
 		dataSyncher = new DataSyncher() {
 			@Override
 			Process startAWSProcess(List<String> args) {
-				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete", "--exclude", "*My Local PC/*", "--exclude", "file1","--exclude", "file2"}, args.toArray());
+				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete", "--exclude", "*My Local PC/*", "--endpoint-url=https://s3.eu-central-1.amazonaws.com", "--exclude", "file1","--exclude", "file2"}, args.toArray());
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {
@@ -77,7 +77,7 @@ class DataSyncherTest {
 		dataSyncher = new DataSyncher() {
 			@Override
 			Process startAWSProcess(List<String> args) {
-				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete", "--exclude", "*My Local PC/*", "--exclude", "file1","--exclude", "file2"}, args.toArray());
+				assertArrayEquals(new String[] {"s3", "sync", "/sftpg/username/data", "s3://backedup-storage-2/username", "--delete", "--exclude", "*My Local PC/*", "--endpoint-url=https://s3.eu-central-1.amazonaws.com", "--exclude", "file1","--exclude", "file2"}, args.toArray());
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {
@@ -127,7 +127,7 @@ class DataSyncherTest {
 		dataSyncher = new DataSyncher() {
 			@Override
 			Process startAWSProcess(List<String> args) {
-				assertArrayEquals(new String[] {"s3", "sync", "s3://backedup-storage-2/username", "/sftpg/username/data", "--delete"}, args.toArray());
+				assertArrayEquals(new String[] {"s3", "sync", "s3://backedup-storage-2/username", "/sftpg/username/data", "--delete", "--endpoint-url=https://s3.eu-central-1.amazonaws.com"}, args.toArray());
 				return new Process() {
 					@Override
 					public OutputStream getOutputStream() {

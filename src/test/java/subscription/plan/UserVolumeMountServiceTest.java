@@ -5,6 +5,8 @@ import com.amazonaws.services.simplesystemsmanagement.model.SendCommandRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,13 +26,17 @@ class UserVolumeMountServiceTest {
 	void setUp() {
 		userMountsService = new UserMountsService();
 		deviceList = new DeviceList();
-		userVolumeMountService = new UserVolumeMountService(userMountsService, deviceList);
+		userVolumeMountService = new UserVolumeMountService(userMountsService, deviceList) {
+			@Override
+			public void initializeEC2Environment() {
+				this.ec2InstanceId = "i-dmkj1892jdiu1";
+				this.ec2AvailabilityZone = "eu-central-1a";
+			}
+		};
 	}
 
 	@Test
 	void createVolume() {
-		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
-		userVolumeMountService.ec2AvailabilityZone = "eu-central-1a";
 		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public CreateVolumeResult createVolume(CreateVolumeRequest req) {
@@ -49,7 +55,6 @@ class UserVolumeMountServiceTest {
 
 	@Test
 	void attachVolume() {
-		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
 		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override
 			public DescribeVolumesResult describeVolumes(DescribeVolumesRequest req) {
@@ -69,7 +74,7 @@ class UserVolumeMountServiceTest {
 			}
 
 			@Override
-			public void sendCommandAsync(SendCommandRequest req) {
+			public void sendCommand(SendCommandRequest req) {
 				assertEquals("AWS-RunShellScript", req.getDocumentName());
 				assertEquals("1", req.getDocumentVersion());
 				assertEquals(Arrays.asList("mkfs -t xfs /dev/sdo",
@@ -80,6 +85,46 @@ class UserVolumeMountServiceTest {
 						req.getParameters().get("commands"));
 				assertEquals(Collections.singletonList("40"), req.getParameters().get("executionTimeout"));
 				assertEquals(userVolumeMountService.ec2InstanceId, req.getInstanceIds().get(0));
+			}
+		});
+		userVolumeMountService.setDataSyncher(new DataSyncher() {
+			@Override
+			Process startAWSProcess(List<String> args) {
+				return new Process() {
+					@Override
+					public OutputStream getOutputStream() {
+						return null;
+					}
+
+					@Override
+					public InputStream getInputStream() {
+						return null;
+					}
+
+					@Override
+					public InputStream getErrorStream() {
+						return null;
+					}
+
+					@Override
+					public int waitFor() {
+						return 0;
+					}
+
+					@Override
+					public int exitValue() {
+						return 0;
+					}
+
+					@Override
+					public void destroy() {
+					}
+
+					@Override
+					public boolean isAlive() {
+						return false;
+					}
+				};
 			}
 		});
 		userVolumeMountService.attachVolume(user, volumeId);
@@ -103,7 +148,6 @@ class UserVolumeMountServiceTest {
 
 	@Test
 	void createUser() {
-		userVolumeMountService.ec2InstanceId = "i-dmkj1892jdiu1";
 		userVolumeMountService.setTokenStore(new TokenStore());
 		userVolumeMountService.setAwsAdapter(new DummyAWSAdapter() {
 			@Override

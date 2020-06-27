@@ -89,4 +89,55 @@ public class StorageSubscriptionTest {
 			}
 		};
 	}
+
+	@MockBean(UserMountsService.class)
+	UserService userMountsService() {
+		UserMountsService userMountsService = new UserMountsService();
+		userMountsService.put("username", new MountPoint("/dev/sdo", "vol-07aa2a8cf7b8b15d7"));
+		return userMountsService;
+	}
+
+	@MockBean(UserVolumeMountService.class)
+	VolumeService userVolumeMountService() {
+		TokenStore tokenStore = new TokenStore();
+		tokenStore.putToken("username", "token");
+		tokenStore.putToken("username2", "token2");
+		UserVolumeMountService volumeService = new UserVolumeMountService(userMountsService(), new DeviceList()) {
+			@Override
+			public void initializeEC2Environment() {
+				this.ec2InstanceId = "i-dmkj1892jdiu1";
+				this.ec2AvailabilityZone = "eu-central-1a";
+			}
+
+			@Override
+			public String createVolume() {
+				return "vol-07aa2a8cf7b8b15d9";
+			}
+
+			@Override
+			public void attachVolume(String user, String volumeId) {
+			}
+
+			@Override
+			public String createUser(String user) {
+				return user;
+			}
+
+			@Override
+			public String getUserToken(String user) {
+				return tokenStore.getToken(user);
+			}
+
+			@Override
+			public void deleteVolume(String user, MountPoint mp) {
+			}
+
+			@Override
+			public boolean tokenHashMatch(String user, String token) {
+				return super.tokenHashMatch(user, token);
+			}
+		};
+		volumeService.setTokenStore(tokenStore);
+		return volumeService;
+	}
 }
